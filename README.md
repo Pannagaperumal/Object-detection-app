@@ -90,6 +90,7 @@ CMD ["python", "app.py"]
 ## 🚀 About Me
 Greetings! I'm Akhila, a dedicated student with a strong passion for web development. My ambition is to excel as a Full Stack Developer, where I strive to harmonize creativity and technology to innovate and deliver cutting-edge solutions.
 
+email me for any feedback --> akhilad367@gmail.com
 
 ## 🔗 Links
 
