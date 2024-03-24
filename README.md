@@ -85,3 +85,12 @@ CMD ["python", "app.py"]
 ```
 
 4.Access the application at http://localhost:5000 in your web browser.
+
+
+## 🚀 About Me
+Greetings! I'm Akhila, a dedicated student with a strong passion for web development. My ambition is to excel as a Full Stack Developer, where I strive to harmonize creativity and technology to innovate and deliver cutting-edge solutions.
+
+
+## 🔗 Links
+
+[![linkedin](https://img.shields.io/badge/linkedin-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/akhila-d-935ab6212)
