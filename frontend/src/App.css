@@ -1,0 +1,57 @@
+/* App.css */
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: #f8f8f8;
+  min-height: 100vh;
+}
+
+.main-content {
+  max-width: 800px;
+  width: 100%;
+  margin-top: 20px;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.upload-section {
+  margin-bottom: 20px;
+}
+
+.result-section {
+  margin-top: 20px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.footer {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.footer p {
+  margin-top: 10%;
+  color: #888;
+  font-size: 14px;
+}
+
+/* Styles for NavBar, ImageUploadForm, and ImageDisplay components can go here */
+/* CSS styles for section divider */
+.section-divider {
+  height: 2px; /* Set the height of the divider */
+  background-color: #000; /* Set the background color of the divider */
+  margin: 20px 0; /* Add some margin for spacing */
+}
+
+.no-bullets {
+  list-style-type: none; /* Removes bullets */
+}
