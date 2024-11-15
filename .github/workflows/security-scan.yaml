@@ -5,7 +5,9 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly scan on Sunday
+
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -13,48 +15,47 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Build Docker image
-      run: |
-        docker build -t object-detection:latest .
-    
-    - name: Run Trivy vulnerability scanner for Python dependencies
+    # Scan Backend
+    - name: Run Trivy vulnerability scanner for Backend
       uses: aquasecurity/trivy-action@master
       with:
         scan-type: 'fs'
-        scan-ref: '.'
+        scan-ref: './backend'
         format: 'table'
         severity: 'CRITICAL,HIGH'
         timeout: '10m'
         exit-code: '1'
         ignore-unfixed: true
-        skip-dirs: 'tests'
         scanners: 'vuln,secret,config'
     
-    - name: Run Trivy vulnerability scanner for Docker image
+    # Scan Frontend
+    - name: Run Trivy vulnerability scanner for Frontend
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: 'object-detection:latest'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
+        scan-type: 'fs'
+        scan-ref: './frontend'
+        format: 'table'
         severity: 'CRITICAL,HIGH'
         timeout: '10m'
         exit-code: '1'
         ignore-unfixed: true
-        vuln-type: 'os,library'
+        scanners: 'vuln,secret,config'
+
+    # Scan for secrets across entire project
+    - name: Run Trivy for secret scanning
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH'
+        timeout: '10m'
+        exit-code: '0'  # Don't fail for secrets
+        scanners: 'secret'
     
     - name: Upload Trivy scan results to GitHub Security tab
       uses: github/codeql-action/upload-sarif@v2
       if: always()
       with:
         sarif_file: 'trivy-results.sarif'
-
-    - name: Run Trivy for secret scanning
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'table'
-        severity: 'CRITICAL,HIGH'
-        timeout: '10m'
-        exit-code: '0'  # Don't fail for secrets
-        scanners: 'secret'
