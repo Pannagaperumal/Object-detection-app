@@ -5,13 +5,21 @@ scan:
     - "**/test/**"
     - "**/__pycache__/**"
     - "**/node_modules/**"
-    - "**/yolov3/**"  # Skip scanning the model files
+    - "**/build/**"
+    - "**/dist/**"
     
   file-patterns:
     - "*.py"
-    - "*.ipynb"
-    - "Dockerfile"
+    - "*.js"
+    - "*.jsx"
+    - "*.ts"
+    - "*.tsx"
+    - "*.json"
+    - "*.lock"
+    - "*.yaml"
+    - "*.yml"
     - "requirements.txt"
+    - "package.json"
     
 vulnerability:
   ignore-unfixed: true
@@ -20,4 +28,4 @@ vulnerability:
     - CRITICAL
 
 secret:
-  disable-entropy-check: true  # Reduce false positives for ML model files
+  disable-entropy-check: true
