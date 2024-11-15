@@ -1,0 +1,60 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build Docker image
+      run: |
+        docker build -t object-detection:latest .
+    
+    - name: Run Trivy vulnerability scanner for Python dependencies
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'table'
+        severity: 'CRITICAL,HIGH'
+        timeout: '10m'
+        exit-code: '1'
+        ignore-unfixed: true
+        skip-dirs: 'tests'
+        scanners: 'vuln,secret,config'
+    
+    - name: Run Trivy vulnerability scanner for Docker image
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'object-detection:latest'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH'
+        timeout: '10m'
+        exit-code: '1'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+    
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Run Trivy for secret scanning
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'table'
+        severity: 'CRITICAL,HIGH'
+        timeout: '10m'
+        exit-code: '0'  # Don't fail for secrets
+        scanners: 'secret'
