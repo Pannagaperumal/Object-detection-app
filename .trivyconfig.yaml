@@ -1,0 +1,23 @@
+scan:
+  skip-dirs:
+    - "**/.git/**"
+    - "**/tests/**"
+    - "**/test/**"
+    - "**/__pycache__/**"
+    - "**/node_modules/**"
+    - "**/yolov3/**"  # Skip scanning the model files
+    
+  file-patterns:
+    - "*.py"
+    - "*.ipynb"
+    - "Dockerfile"
+    - "requirements.txt"
+    
+vulnerability:
+  ignore-unfixed: true
+  severity:
+    - HIGH
+    - CRITICAL
+
+secret:
+  disable-entropy-check: true  # Reduce false positives for ML model files
