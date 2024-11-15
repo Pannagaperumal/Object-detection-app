@@ -11,51 +11,78 @@ on:
 jobs:
   scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # for git checkout
+      security-events: write # for uploading security results
     
     steps:
     - uses: actions/checkout@v3
     
-    # Scan Backend
-    - name: Run Trivy vulnerability scanner for Backend
-      uses: aquasecurity/trivy-action@master
+    # Cache Trivy vulnerability database
+    - name: Cache Trivy vulnerability database
+      uses: actions/cache@v3
       with:
-        scan-type: 'fs'
-        scan-ref: './backend'
-        format: 'table'
-        severity: 'CRITICAL,HIGH'
-        timeout: '10m'
-        exit-code: '1'
-        ignore-unfixed: true
-        scanners: 'vuln,secret,config'
+        path: ~/.cache/trivy
+        key: ${{ runner.os }}-trivy-${{ hashFiles('**/*.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-trivy-
     
-    # Scan Frontend
-    - name: Run Trivy vulnerability scanner for Frontend
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: './frontend'
-        format: 'table'
-        severity: 'CRITICAL,HIGH'
-        timeout: '10m'
-        exit-code: '1'
-        ignore-unfixed: true
-        scanners: 'vuln,secret,config'
-
-    # Scan for secrets across entire project
-    - name: Run Trivy for secret scanning
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-        severity: 'CRITICAL,HIGH'
-        timeout: '10m'
-        exit-code: '0'  # Don't fail for secrets
-        scanners: 'secret'
+    # Install Trivy with alternative method
+    - name: Install Trivy
+      run: |
+        sudo apt-get install wget apt-transport-https gnupg lsb-release -y
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+        echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+        sudo apt-get update
+        sudo apt-get install trivy -y
     
+    # Scan Backend with authentication
+    - name: Scan Backend
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        trivy fs \
+          --cache-dir ~/.cache/trivy \
+          --format table \
+          --exit-code 0 \
+          --severity HIGH,CRITICAL \
+          --ignore-unfixed \
+          --scanners vuln,secret,config \
+          ./backend
+    
+    # Scan Frontend with authentication
+    - name: Scan Frontend
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        trivy fs \
+          --cache-dir ~/.cache/trivy \
+          --format table \
+          --exit-code 0 \
+          --severity HIGH,CRITICAL \
+          --ignore-unfixed \
+          --scanners vuln,secret,config \
+          ./frontend
+    
+    # Generate SARIF report for GitHub Security tab
+    - name: Generate SARIF report
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        trivy fs \
+          --cache-dir ~/.cache/trivy \
+          --format sarif \
+          --output trivy-results.sarif \
+          --exit-code 0 \
+          --severity HIGH,CRITICAL \
+          --ignore-unfixed \
+          --scanners vuln,secret,config \
+          .
+    
+    # Upload SARIF report
     - name: Upload Trivy scan results to GitHub Security tab
       uses: github/codeql-action/upload-sarif@v2
       if: always()
       with:
         sarif_file: 'trivy-results.sarif'
+        wait-for-processing: true
